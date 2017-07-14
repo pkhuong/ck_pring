@@ -101,7 +101,7 @@ struct ck_pring {
 /**
  * Return the data block for consumer index (< n_consumer).
  */
-CK_PRING_EXTERN inline struct ck_pring_consumer *
+static CK_CC_FORCE_INLINE struct ck_pring_consumer *
 ck_pring_consumer_by_id(struct ck_pring *ring, size_t index)
 {
 	struct ck_pring_consumer_block *consumers = &ring->cons;
