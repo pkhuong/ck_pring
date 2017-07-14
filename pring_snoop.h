@@ -66,7 +66,7 @@ ck_pring_snoop(struct ck_pring_snooper *snoop, const struct ck_pring *ring)
 	size_t loc = cursor & mask;
 
 	if (CK_CC_UNLIKELY((int64_t)(cursor - snoop->cons.read_limit) >= 0)) {
-		return ck_pring_snoop_slow(snoop, ring);
+		goto slow;
 	}
 
 	snap.gen = ck_pr_load_ptr(&buf[loc].gen);
@@ -81,10 +81,13 @@ ck_pring_snoop(struct ck_pring_snooper *snoop, const struct ck_pring *ring)
 	ck_pr_fence_load();
 	if (CK_CC_UNLIKELY((uint64_t)ck_pr_load_ptr(&buf[loc].gen) != cursor)) {
 		/* gen doesn't match and/or cursor is out of date; try again. */
-		return ck_pring_snoop_slow(snoop, ring);
+		goto slow;
 	}
 
 	snoop->cons.cursor = cursor + 1;
 	return snap.value;
+
+slow:
+	return ck_pring_snoop_slow(snoop, ring);
 }
 #endif /* !PRING_SNOOP_H */
