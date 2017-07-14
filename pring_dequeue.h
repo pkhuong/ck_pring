@@ -245,16 +245,16 @@ ck_pring_mread_generic(struct ck_pring *ring, size_t index,
 	snap.gen = ck_pr_load_ptr(&buf[loc].gen);
 	ck_pr_fence_load();
 	snap.value = ck_pr_load_ptr(&buf[loc].value);
-	if (CK_CC_UNLIKELY((int64_t)((uint64_t)snap.gen - cursor) > 0)) {
-		goto slow;
+	if (CK_CC_UNLIKELY((int64_t)((uint64_t)snap.gen - cursor) < 0)) {
+		return 0;
 	}
 
 	ck_pr_fence_load();
-	if (CK_CC_UNLIKELY(ck_pr_load_ptr(&buf[loc].gen) != snap.gen)) {
+	if (CK_CC_UNLIKELY(ck_pr_load_ptr(&buf[loc].gen) != cursor)) {
 		goto slow;
 	}
 
-	return ((uint64_t)snap.gen == cursor) ? snap.value : 0;
+	return snap.value;
 
 slow:
 	return ck_pring_mread_slow(ring, index, OUT_gen, hard);
