@@ -5,7 +5,7 @@
 
 static bool
 snoop_update_cursor(struct ck_pring_snooper *snoop,
-    const struct ck_pring *ring)
+    const struct ck_pring *ring, bool init)
 {
 	const struct ck_pring_elt *buf = snoop->cons.buf;
 	uint64_t mask = snoop->cons.mask;
@@ -20,7 +20,7 @@ snoop_update_cursor(struct ck_pring_snooper *snoop,
 		new_cursor = (uint64_t)ck_pr_load_ptr(&buf[loc].gen);
 	}
 
-	if ((int64_t)(cursor - new_cursor) >= 0) {
+	if (!init && (int64_t)(cursor - new_cursor) >= 0) {
 		return false;
 	}
 
@@ -37,7 +37,7 @@ ck_pring_snoop_init(struct ck_pring_snooper *snoop, const struct ck_pring *ring,
 	snoop->cons.mask = ring->prod.mask;
 	snoop->cons.dependency_begin = dep_begin;
 	snoop->cons.dependency_end = dep_end;
-	(void)snoop_update_cursor(snoop, ring);
+	(void)snoop_update_cursor(snoop, ring, true);
 	return;
 }
 
@@ -123,7 +123,7 @@ ck_pring_snoop_n(struct ck_pring_snooper *snoop, const struct ck_pring *ring,
 		}
 
 		n = (n + 1) / 2;
-		if (!snoop_update_cursor(snoop, ring)) {
+		if (!snoop_update_cursor(snoop, ring, false)) {
 			ret = 0;
 			break;
 		}
