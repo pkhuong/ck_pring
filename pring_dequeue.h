@@ -250,7 +250,7 @@ ck_pring_mread_generic(struct ck_pring *ring, size_t index,
 	}
 
 	ck_pr_fence_load();
-	if (CK_CC_UNLIKELY(ck_pr_load_ptr(&buf[loc].gen) != cursor)) {
+	if (CK_CC_UNLIKELY((uint64_t)ck_pr_load_ptr(&buf[loc].gen) != cursor)) {
 		goto slow;
 	}
 
